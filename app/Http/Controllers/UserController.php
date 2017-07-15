@@ -10,7 +10,7 @@ use App\Booking;
 use App\Room;
 use App\RoomType;
 use App\User;
-use Auth;
+use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
 class UserController extends Controller
@@ -44,12 +44,27 @@ class UserController extends Controller
 
 
 
-    public function showfinalize()
+    public function showfinalize(Request $request)
     {
-       $bookings =Booking::first();
+      $book = new Booking;
+      $book->arriving_date     = $request->arrive;
+      $book->leaving_date      = $request->leave;
+      $book->room_id           = $request->room;
+      $book->user_id        = Auth::id();
+      $book->save();
+      $bookings =Booking::findOrFail($book->id);
+       if($bookings){ 
+        $rm  = Room::find($request->room);
+        if($rm->room_status == "empty")
+        {
+          Room::findOrFail($request->room)->update(['room_status' =>"booked"]);
+        }
        return view('Page.finalize')
        ->with('bookings',$bookings);
-    	
+    	}
+        else{
+        return back();
+        }
     }
 
 
@@ -101,14 +116,14 @@ class UserController extends Controller
        
          return view('Page.details',compact('arrive','leave','rm','day','capacity','checkTeacher'));
     }else{
-         $rm       = Room::where('roomtype_id',$roomType->id)
+        $rm       = Room::where('roomtype_id',$roomType->id)
                         ->where('room_status','booked')
                         ->first();
         $bookings  = Booking::where('room_id',$roomType->id)
                                     ->whereBetween('arriving_date',[$arrive,$leave])
                                     ->orWhereBetween('leaving_date',[$arrive,$leave])
                                     ->first();
-        if($bookings)
+        if(!empty($bookings) )
         {
             $msg ="No availale room is found!";
         }

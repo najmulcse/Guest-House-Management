@@ -11,13 +11,16 @@
                   </div>
         </div> 
 
-          <p class="alert alert-info text-right">
-          @if(!empty($checkTeacher))
-            <a class="btn btn-primary" href="{{route('finalize',['room_id' =>$rm->id])}}" role="button"><span class="glyphicon glyphicon-plus"></span>Confirm Booking</a>
-          @else
-           <a class="btn btn-primary" href="{{route('teacherInfo',['room_id' =>$rm->id,'arrive' =>$arrive,'leave'=>$leave])}}" role="button"><span class="glyphicon glyphicon-plus"></span>Next</a>
-          @endif 
-         </p>
+          
+          <form action="{{route('finalize',['room_id' =>$rm->id])}}" method="POST" class="form-horizontal" role="form">
+            {{csrf_field()}} 
+          <input type="hidden" name="arrive" value="{{$arrive}}">
+          <input type="hidden" name="leave" value="{{$leave}}">
+          <input type="hidden" name="room" value="{{$rm->id}}">
+ 
+          <button class="btn btn-primary pull-right" type="submit"  role="button"><span class="glyphicon glyphicon-plus"></span>Confirm Booking</button>
+             
+          </form>
 
 
 

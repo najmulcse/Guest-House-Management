@@ -23,11 +23,11 @@ Route::get('check',['as'=>'check','uses'=> 'UserController@showcheck']);
 
 Route::get('room_booking','UserController@showroom_booking');
 
-Route::get('finalize/{room_id}',['as'=>'finalize','uses'=>'UserController@showfinalize']);
+Route::post('finalize/{room_id}',['as'=>'finalize','uses'=>'UserController@showfinalize']);
 
 Route::get('details',['as'=>'details','uses'=>'UserController@showdetails']);
-Route::get('teacherInfo/{room_id}/{arrive}/{leave}',['as'=>'teacherInfo','uses'=>'UserController@teacherInfo']);
-Route::post('teacherInfoSubmit',['as'=>'teacherInfoSubmit','uses'=>'UserController@teacherInfoSubmit']);
+// Route::get('teacherInfo/{room_id}/{arrive}/{leave}',['as'=>'teacherInfo','uses'=>'UserController@teacherInfo']);
+// Route::post('teacherInfoSubmit',['as'=>'teacherInfoSubmit','uses'=>'UserController@teacherInfoSubmit']);
 //Check validity 
 
 

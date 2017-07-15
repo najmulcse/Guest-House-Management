@@ -29,7 +29,7 @@
              <div class="dropdown">
 
                  <select class="btn btn-md" name="room">
-                    <option value="" selected="">Select room</option>
+                    <option value="" selected="">SELECT ROOM</option>
                     <option value="small" >SMALL</option>
                     <option value="medium" >MEDIUM</option>
                     <option value="large">LARGE</option>
