@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
-
+use App\BookingDetail;
 use App\Booking;
 use App\Room;
 use App\RoomType;
@@ -15,6 +15,10 @@ use Carbon\Carbon;
 
 class UserController extends Controller
 {
+  public function __construct()
+    {
+        $this->middleware('auth');
+    }
      public function showProfile()
     {
         return view('Page.index');
@@ -30,7 +34,7 @@ class UserController extends Controller
 
     public function showcheck()
     {
-        $bookings = Booking::where('user_id',Auth::id())->get();
+       $bookings = Booking::where('user_id',Auth::id())->get();
                 return view('Page.check')
                 ->with('bookings',$bookings);
     }
@@ -46,25 +50,36 @@ class UserController extends Controller
 
     public function showfinalize(Request $request)
     {
-      $book = new Booking;
-      $book->arriving_date     = $request->arrive;
-      $book->leaving_date      = $request->leave;
-      $book->room_id           = $request->room;
-      $book->user_id        = Auth::id();
-      $book->save();
-      $bookings =Booking::findOrFail($book->id);
-       if($bookings){ 
-        $rm  = Room::find($request->room);
-        if($rm->room_status == "empty")
-        {
-          Room::findOrFail($request->room)->update(['room_status' =>"booked"]);
-        }
-       return view('Page.finalize')
-       ->with('bookings',$bookings);
-    	}
-        else{
-        return back();
-        }
+
+      $arriving_date = $request->arrive;
+      $leaving_date  = $request->leave;
+      $room          = $request->room;
+      $roomTypeId    =$request->roomTypeId;
+
+      $booking = Booking::create([
+              'user_id'       => Auth::user()->id,
+              'arriving_date' => $arriving_date,
+              'leaving_date'  => $leaving_date ,
+              'room_id'       => $room,
+              ]);
+          
+              $start_dt = Carbon::parse( $arriving_date)->toDateString();
+              $end_dt   = Carbon::parse( $leaving_date)->toDateString();
+              $date     = $start_dt ;
+      if($booking){
+            while(strtotime($date) <= strtotime($end_dt))
+            {
+             $bookingdetails = BookingDetail::create([
+              'booking_id'      =>$booking->id ,
+              'booking_date'    => $date,
+              'roomtype_id'         => $roomTypeId
+              ]);
+              $date = date ("Y-m-d", strtotime("+1 day", strtotime($date)));
+             }
+
+        return view('Page.finalize',compact('booking'));
+                    
+       }
     }
 
 
@@ -93,47 +108,47 @@ class UserController extends Controller
     $this->validate($request,$rules);
     $arrive    = Carbon::parse($request->arriving_date) ;
     $leave     = Carbon::parse($request->leaving_date) ;
+    
     if($arrive< Carbon::now())
     {
         return back()->with('msg','Please select a valid date')
                      ->withInput();
     }
+    
     $day = $arrive->diffInDays($leave);
     if( $day== 0)
     {
-        $day = $day + 1;
+        $day =  1;
     }
+    
     $room      = $request->room ;
-    $roomType      = RoomType::where('room_category',$room)->first();
+    
+     $roomType  = RoomType::where('room_category',$room)->first();
+     $roomTypeId = $roomType->id;
+     $rm    = Room::where('roomtype_id',$roomTypeId)
+                         ->first();
 
-    $rm    = Room::where('roomtype_id',$roomType->id)
-                        ->where('room_status','empty')
+
+
+   $bookingdetails = BookingDetail::whereBetween(
+                            'booking_date',[$request->arriving_date,$request->leaving_date])
+                         ->where('roomtype_id',$roomTypeId)
                         ->first();
+    // dd($bookingdetails);
     $capacity = $roomType->room_capacity;
-    $checkTeacher = Booking::where('user_id',Auth::id())->first();
+    if(!$bookingdetails){
+    
+       // $roomNumber = Room::where('roomtype_id',$roomType->id)->first()->id;
 
-    if($rm){
+       return view('Page.details',compact('arrive','leave','rm','roomTypeId','day','capacity','checkTeacher'));
        
-         return view('Page.details',compact('arrive','leave','rm','day','capacity','checkTeacher'));
-    }else{
-        $rm       = Room::where('roomtype_id',$roomType->id)
-                        ->where('room_status','booked')
-                        ->first();
-        $bookings  = Booking::where('room_id',$roomType->id)
-                                    ->whereBetween('arriving_date',[$arrive,$leave])
-                                    ->orWhereBetween('leaving_date',[$arrive,$leave])
-                                    ->first();
-        if(!empty($bookings) )
-        {
-            $msg ="No availale room is found!";
-        }
-        else
-        {
-            return view('Page.details',compact('arrive','leave','rm','day','capacity','checkTeacher')); 
-        }
-       }
+    }
+    else{
+        $msg ="No availale room is found!";
+    }
 
-    return back()->with('msg',$msg)
+
+        return back()->with('msg',$msg)
                   ->withInput();
 
 
@@ -149,5 +164,13 @@ class UserController extends Controller
 
    public function teacherInfoSubmit(){
 
+   }
+
+
+   public function cancelBooking($id)
+   {
+      Booking::findOrFail($id)->delete();
+      BookingDetail::where('booking_id',$id)->delete();
+      return back()->with('msg'," Booking canceled Successfully.");
    }
 }

@@ -30,6 +30,7 @@ Route::get('details',['as'=>'details','uses'=>'UserController@showdetails']);
 // Route::post('teacherInfoSubmit',['as'=>'teacherInfoSubmit','uses'=>'UserController@teacherInfoSubmit']);
 //Check validity 
 
+Route::get('booking-cancel/{id}',['as'=>'booking.cancel', 'uses'=>'UserController@cancelBooking']);
 
 Route::post('checkValidity',['as' =>'checkValidity' ,'uses' => 'UserController@checkValidity']);
 

@@ -16,7 +16,7 @@ class BookingTableSeeder extends Seeder
             [
                 [ 
                   'name'=>'john',
-                  'user_id'=>'8',
+                  'user_id'=>'1',
                   'salaryID'=>'700000',
                   'designation'=>'Teacher',
                   'department'=>'CSE',

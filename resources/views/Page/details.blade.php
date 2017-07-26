@@ -17,6 +17,7 @@
           <input type="hidden" name="arrive" value="{{$arrive}}">
           <input type="hidden" name="leave" value="{{$leave}}">
           <input type="hidden" name="room" value="{{$rm->id}}">
+          <input type="hidden" name="roomTypeId" value="{{$roomTypeId}}">
  
           <button class="btn btn-primary pull-right" type="submit"  role="button"><span class="glyphicon glyphicon-plus"></span>Confirm Booking</button>
              
